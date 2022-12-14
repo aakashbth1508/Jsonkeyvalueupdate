@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>JSON FILE</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        label{ overflow-wrap: break-word !important; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-lg-3"></div>
+            <div class="col-sm-12 col-md-4 col-lg-6">
+                <h3>Record</h3>
+                <form id="form1" class='well' method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="action" name="action" />
+                    <input type="hidden" name="filename" value="{{filename}}" />
+                    <input type="hidden" value="{{data}}" name="data" />
+                    <div class="form-group">
+                        <input type="file" name="json_file">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0px;">
+                        <button disabled="true" type="button" id="btn_upload" class="btn btn-primary">Upload</button>
+                        {% if filename %}
+                            FILE: {{filename}}
+                        {% endif %}
+                        {% if error %}
+                            <h5 style="color:red;display: inline;">{{ error }}</h3>
+                        {% endif %}
+                    </div>
+                    <hr/>
+                    {% comment %} dynamically appendind data {% endcomment %}
+                    {% for one_field in block_data %}
+                        <div class="form-group row">
+                            <label class="col-xs-6 col-sm-4">{{one_field.find}}</label>
+                            <div class="col-xs-6 col-sm-8">
+                            <input type="text" class="form-control" name="key" value="{{one_field.find}}" style="display:none">
+                            <input type="text" class="form-control" name="value" value="{{one_field.replace}}" >
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="form-group text-right" style="margin-bottom: 0px;">
+                        <button type="button" id="btn_update" class="btn btn-success m-2">Update</button>
+                    </div>
+                  </form>
+                  <hr>
+                  {% if new_data %}
+                    <div class="form-group text-left" style="margin-bottom: 35px;">
+                        <h3> Updated Data <h3>
+                        <button type="button" id="btn_download" class="btn btn-primary">Download</button>
+                        <textarea disabled="true" id="dwndata" style="resize: none;" rows="60" class="form-control">{{ new_data }}</textarea>
+                        </div>
+                    {% endif %}
+
+            </div>
+            <div class="col-md-4 col-lg-3"></div>
+        </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+    
+    <script>
+        $(document).ready(function(){
+            document.getElementsByName("json_file")[0].onchange = function(){ 
+                console.log(this.files[0].mozFullPath);
+                if(this.value==''){
+                    $("#btn_upload").prop('disabled', true);
+                }else{
+                    $("#btn_upload").prop('disabled', false);
+                }
+            }
+
+            $("#btn_upload").click(function(){
+                $("#action").val("1");
+                $("#form1")[0].submit();
+            });
+
+            $("#btn_update").click(function(){
+                $("#action").val("2");
+                $("#form1")[0].submit();
+            });
+
+            $("#btn_download").click(function(){
+                $("#action").val("3");
+                $("#form1")[0].submit();
+            });
+
+        });
+    </script>
+
+  </body>
+</html>
