@@ -25,8 +25,6 @@ class UpdateJSON(View):
                 block_data = file_data['merge']
                 data = {"block_data":block_data,"filename":temp_file.name,"data":data}
                 data['data'] = file_content.decode('utf-8')
-
-                # data['data'] = file_content.decode('utf-8')
                 return render(request, 'update_json.html', context=data)
             
             elif action == '2': 
@@ -40,15 +38,17 @@ class UpdateJSON(View):
                     print(E)
                     raise ValueError('invalid filedata!') 
                 # original data
-                new_data={}
+                newdata = []
                 keys =req_data.getlist('key')
                 values = req_data.getlist('value')
-                for (key, value) in zip(keys, values):
-                    new_data[key] = value
-                # Updating the temporary file data
-                str_data['merge'] = new_data
-                data= {"new_data":new_data,"filename":request.POST.get('filename'),"data":str_data}
-                data['new_data'] = json.dumps(new_data, indent=4)
+                for (x,y) in zip(keys, values):
+                    new_data={}
+                    new_data["find"] = x
+                    new_data["replace"] = y
+                    newdata.append(new_data)
+                str_data['merge'] = newdata
+                data= {"new_data":newdata,"filename":request.POST.get('filename'),"data":str_data}
+                data['new_data'] = json.dumps(newdata, indent=4)
                 # send  original file
                 return render(request, 'update_json.html', context=data)
 
@@ -67,19 +67,3 @@ class UpdateJSON(View):
 
         except Exception as e:
             return render(request, 'update_json.html', {'error': 'error: '+str(e)})
-
-        # return render(request, 'update_json.html', {'error': 'error: Invalid action!'})
-    
-
-
-
-# temp_file = request.FILES['json_file']
-# file_system_storage = FileSystemStorage()
-# filename = file_system_storage.save(temp_file.name, temp_file)
-# uploaded_file_url = file_system_storage.url(filename)
-
-# with open(os.path.join(settings.MEDIA_ROOT, filename)) as f:
-#     print(json.loads(f.read()))
-# return render(request, 'update_json.html', {
-#     'uploaded_file_url': uploaded_file_url
-# })
