@@ -100,7 +100,7 @@ def update_data(data, updated_data):
             update_data(i, updated_data)
 
     return data
-import re
+
 class CalculateValue(View):
 
     def get(self, request):
