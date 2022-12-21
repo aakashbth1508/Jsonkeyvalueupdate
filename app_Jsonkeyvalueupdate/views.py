@@ -123,7 +123,7 @@ class CalculateValue(View):
                     else:
                         value = '"' + value + '"'
                     s += data1['find'] + ' = ' + value + '\n'
-                data = {"block_data":s,"filename":temp_file.name}
+                data = {"block_data":s,"filename":temp_file.name,"data":data}
                 data['data'] = file_content.decode('utf-8')
                 return render(request, 'calculate_json.html', context=data)
             except Exception as e:
@@ -133,6 +133,7 @@ class CalculateValue(View):
             try:
                 filename = request.POST.get('filename')
                 script_block = request.POST.get('script_block')
+                data = request.POST.get('data')
 
                 with open(os.path.join(settings.MEDIA_ROOT, filename), 'r') as f:
                     show_data = json.loads(f.read())
