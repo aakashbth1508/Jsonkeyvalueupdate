@@ -17,6 +17,16 @@
   </head>
   <body>
     <div class="container">
+        <div class="sidebar-offcanvas">
+            <ul class="ng-star-inserted">
+                <li>
+                    <a href="" class="active">Edit Values</a>
+                </li>
+                <li>
+                    <a href="/Calculate">Calculate Values</a>
+                </li>
+            </ul>
+        </div>
         <div class="row">
             <div class="col-md-4 col-lg-3"></div>
             <div class="col-sm-12 col-md-4 col-lg-6">
@@ -39,7 +49,7 @@
                         {% endif %}
                     </div>
                     <hr/>
-                    {% comment %} dynamically appendind data {% endcomment %}
+                    {% comment %} dynamically appending data {% endcomment %}
                     {% for one_field in block_data %}
                         <div class="form-group row">
                             <label class="col-xs-6 col-sm-4">{{one_field.find}}</label>

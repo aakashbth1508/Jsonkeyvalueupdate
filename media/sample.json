@@ -1,0 +1,148 @@
+{
+    "timeline": {
+        "fonts": [
+            {
+                "src": "{{LTFONT_SRC}}"
+            }
+        ],
+        "background": "#000000",
+        "tracks": [
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<p>{{NAME}}</p>",
+                            "height": 1920,
+                            "width": 1080,
+                            "css": "p { font-family: \"{{LTFONT}}\"; color: {{LTFONT_COLOR}}; font-size: 78px; text-align: left; line-height: 78; }"
+                        },
+                        "transition": {
+                            "in": "wipeRight",
+                            "out": "fade"
+                        },
+                        "offset": {
+                            "x": 0.1,
+                            "y": -0.25
+                        },
+                        "position": "left",
+                        "start": "{{NAME_START}}",
+                        "length": 7
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "html",
+                            "html": "<p>{{TITLE}}</p>",
+                            "css": "p { font-family: \"{{LTFONT}}\"; color: {{LTFONT_COLOR}}; font-size: 36px; text-align: left; line-height: 78; }",
+                            "width": 1920,
+                            "height": 1080
+                        },
+                        "transition": {
+                            "in": "wipeRight",
+                            "out": "fade"
+                        },
+                        "offset": {
+                            "x": 0.22,
+                            "y": -0.4
+                        },
+                        "start": "{{TITLE_START}}",
+                        "length": 7,
+                        "position": "left"
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{LT}}"
+                        },
+                        "start": "{{LT_START}}",
+                        "transition": {
+                            "in": "wipeRight",
+                            "out": "fade"
+                        },
+                        "length": 8
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "video",
+                            "src": "{{SPEAKER_SRC}}",
+                            "trim": 0,
+                            "volume": 1
+                        },
+                        "start": "{{SPEAKER_START}}",
+                        "length": "{{SPEAKER_LEN}}",
+                        "transition": {
+                            "in": "fade",
+                            "out": "fade"
+                        }
+                    }
+                ]
+            },
+            {
+                "clips": [
+                    {
+                        "asset": {
+                            "type": "audio",
+                            "src": "{{MUSIC_SRC}}",
+                            "volume": "{{MUSIC_VOL}}",
+                            "effect": "fadeOut"
+                        },
+                        "start": 0,
+                        "length": "{{MUSIC_LEN}}"
+                    }
+                ]
+            }
+        ]
+    },
+    "output": {
+        "format": "mp4",
+        "resolution": "1080"
+    },
+    "merge": [
+        {
+            "find": "SPEAKER_SRC",
+            "replace": "https://peersuma-album-media.s3.amazonaws.com/58/video_low_res_e16706e902d849d4885a0cce8506be86_00041.mp4"
+        },
+        {
+            "find": "SPEAKER_START",
+            "replace": 2
+        },
+        {
+            "find": "SPEAKER_LEN",
+            "replace": 10
+        },
+        {
+            "find": "NAME",
+            "replace": "ALAN RUDT"
+        },
+        {
+            "find": "NAME_START",
+            "replace": 3
+        },
+                {
+        "find": "TITLE_START",
+            "replace": 4
+        },
+        {
+            "find": "LT_START",
+            "replace": 3
+        },
+        
+        {
+            "find": "LTFONT_SRC",
+            "replace": "https://templates.shotstack.io/basic/asset/font/manrope-extrabold.ttf"
+        }
+    ],
+    "disk": "mount"
+}
