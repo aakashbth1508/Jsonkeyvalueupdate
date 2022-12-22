@@ -67,40 +67,6 @@ class UpdateJSON(View):
         except Exception as e:
             return render(request, 'update_json.html', {'error': 'error: '+str(e)})
 
-def json_extract(obj, key):
-    arr = []
-
-    def extract(obj, arr, key):
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if isinstance(v, (dict, list)):
-                    extract(v, arr, key)
-                elif k == key:
-                    arr.append(v)
-        elif isinstance(obj, list):
-            for item in obj:
-                extract(item, arr, key)
-        return arr
-
-    values = extract(obj, arr, key)
-    return values
-
-def update_data(data, updated_data):
-    if type(data) is dict:
-        for k, v in data.items():
-            if k in updated_data:
-                for k1, v1 in updated_data.items():
-                    if k1 in data:
-                        if type(data[k1]) != dict:
-                            data[k1] = v1
-            else:
-                update_data(v, updated_data)
-    elif type(data) is list:
-        for i in data:
-            update_data(i, updated_data)
-
-    return data
-
 class CalculateValue(View):
 
     def get(self, request):
@@ -111,21 +77,35 @@ class CalculateValue(View):
         if action == '1':
             try:
                 temp_file = request.FILES['json_file']
-                file_content = temp_file.read()
-                file_data = json.loads(file_content)
-                data  = file_data
-                block_data = file_data['merge']
-                s = ''
-                for data1 in block_data:
-                    value = str(data1['replace'])
-                    if value.isnumeric():
-                        value
-                    else:
-                        value = '"' + value + '"'
-                    s += data1['find'] + ' = ' + value + '\n'
-                data = {"block_data":s,"filename":temp_file.name,"data":data}
-                data['data'] = file_content.decode('utf-8')
-                return render(request, 'calculate_json.html', context=data)
+                if os.path.exists(os.path.join(settings.MEDIA_ROOT, temp_file.name)):
+                    os.remove(os.path.join(settings.MEDIA_ROOT, temp_file.name))
+
+                file_system_storage = FileSystemStorage()
+                filename = file_system_storage.save(temp_file.name, temp_file)
+
+                with open(os.path.join(settings.MEDIA_ROOT, filename), 'r') as f:
+                    show_data = f.read()
+
+                data = json.loads(show_data)
+                merge_data = data.get('merge', None)
+                if merge_data:
+                    merge_data_to_display = []
+                    for i in merge_data:
+                        if type(i["replace"]) is str:
+                            merge_data_to_display.append(f'{i["find"]} = "{i["replace"]}"')
+                        else:
+                            merge_data_to_display.append(f'{i["find"]} = {i["replace"]}')
+                else:
+                    merge_data_to_display = []
+
+                context = {
+                    'filename': filename,
+                    'show_data': 'merge: '+json.dumps(merge_data, indent=4),
+                    'script_block': '\n'.join(merge_data_to_display)
+                }
+                if not merge_data:
+                    context['error'] = 'Invalid json file uploaded, It does not contain "merge" block!'
+                return render(request, 'calculate_json.html', context)
             except Exception as e:
                 return render(request, 'calculate_json.html', {'error': str(e)})
 
@@ -133,41 +113,32 @@ class CalculateValue(View):
             try:
                 filename = request.POST.get('filename')
                 script_block = request.POST.get('script_block')
-                data = request.POST.get('data')
 
                 with open(os.path.join(settings.MEDIA_ROOT, filename), 'r') as f:
                     show_data = json.loads(f.read())
 
-                if not temp_keys.strip():
-                    return render(request, 'calculate_json.html', {
-                        'filename': filename,
-                        'keys_to_update': ', '.join(script_block),
-                        'show_data': json.dumps(show_data, indent=4),
-                        'script_block': script_block,
-                        'error': 'please add atleast 1 key to update.'
-                    })
+                script_block_vars = []
+                script_block_lines = script_block.split("\n")
+                for i in script_block_lines:
+                    if i and "=" in i:
+                        vn = i.split("=")[0]
+                        if vn:
+                            for j in [' ', '+', '-', '%', '/', '*', '//', '**']:
+                                vn = vn.replace(j, "")
+                            script_block_vars.append(vn)
 
-                temp_keys = [i.strip() for i in temp_keys.split(',') if i]
-                keys_to_update = []
-                for i in temp_keys:
-                    i = i.strip()
-                    if '=' in i:
-                        f = '==' in i or '!=' in i or '>=' in i or '<=' in i or '!=' in i or 'in' in i or 'not' in i
-                        if not f:
-                            keys_to_update.append(i)
-
-                temp = script_block.split("\n")
-                l = [i.split("=")[0].strip().replace(" ", "") for i in temp if i and "=" in i]
-                s = set([i for i in l if i.isalpha() or i.isalnum()])
-
+                script_block_vars = set(script_block_vars)
                 script_name = os.path.join(settings.MEDIA_ROOT, filename + '_script.py')
+                
                 script_name = script_name.replace('(', '').replace(')', '').replace(' ', '')
-
+                print(script_name)
                 with open(script_name, 'w') as f:
-                    f.write(script_block)
+                    for line in script_block_lines:
+                        if not 'print(' in line:
+                            f.write(line)
 
                     dict_str = '\ndata = {'
-                    for i in s:
+                    for i in script_block_vars:
                         dict_str += f'"{i}": {i}, '
                     dict_str += '}\n'
 
@@ -176,7 +147,7 @@ class CalculateValue(View):
                     f.write('\nprint(json.dumps(data))\n')
 
                 # this will run the shell command `cat me` and capture stdout and stderr
-                proc = Popen(["python3", script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                proc = Popen(["py", script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 # this will wait for the process to finish.
                 proc.wait()
                 read_data = proc.stdout.read().decode()
@@ -185,20 +156,28 @@ class CalculateValue(View):
                     context = {
                         'filename': filename,
                         'show_data': {},
-                        'keys_to_update': ', '.join(temp_keys),
                         'script_block': script_block,
                         'error': read_err
                     }
                     return render(request, 'calculate_json.html', context)
                 else:
                     updated_data = json.loads(read_data)
+                    merge_data = show_data.get('merge', None)
+                    if merge_data:
+                        for i in merge_data:
+                            if i['find'] in updated_data:
+                                i['replace'] = updated_data[i['find']]
 
-                show_data = update_data(data=show_data, updated_data=updated_data)
+                show_data['merge'] = merge_data
 
                 with open(os.path.join(settings.MEDIA_ROOT, filename), 'w') as f:
                     f.write(json.dumps(show_data, indent=4))
 
-                context = {'filename': filename, 'show_data': json.dumps(show_data, indent=4), 'keys_to_update': ', '.join(temp_keys), 'script_block': script_block}
+                context = {
+                    'filename': filename,
+                    'show_data': 'merge: ' + json.dumps(merge_data, indent=4),
+                    'script_block': script_block
+                }
                 return render(request, 'calculate_json.html', context)
             except IsADirectoryError as e:
                 return render(request, 'calculate_json.html', {'error': 'Please upload a file before proceed!'})

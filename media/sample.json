@@ -116,7 +116,7 @@
         },
         {
             "find": "SPEAKER_START",
-            "replace": 2
+            "replace": 12
         },
         {
             "find": "SPEAKER_LEN",
@@ -130,15 +130,14 @@
             "find": "NAME_START",
             "replace": 3
         },
-                {
-        "find": "TITLE_START",
+        {
+            "find": "TITLE_START",
             "replace": 4
         },
         {
             "find": "LT_START",
             "replace": 3
         },
-        
         {
             "find": "LTFONT_SRC",
             "replace": "https://templates.shotstack.io/basic/asset/font/manrope-extrabold.ttf"
